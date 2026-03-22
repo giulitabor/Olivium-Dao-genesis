@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-black text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olive DAO | PRO Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #000; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .text-solana { color: #14F195; }
+        .bg-solana { background-color: #14F195; }
+
+        /* Loading States */
+        .skeleton { background: linear-gradient(90deg, #111 25%, #222 50%, #111 75%); background-size: 200% 100%; animation: skeleton-load 1.5s infinite; }
+        @keyframes skeleton-load { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+
+    <nav class="fixed top-0 w-full z-50 glass border-b border-white/5 px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <div class="w-8 h-8 bg-solana rounded-full shadow-[0_0_15px_rgba(20,241,149,0.5)]"></div>
+            <h1 class="font-black italic uppercase tracking-tighter text-2xl">Olive <span class="text-zinc-500">DAO</span></h1>
+        </div>
+
+        <div class="flex gap-10">
+            <button id="tab-market" onclick="window.switchTab('market')" class="text-[10px] font-black uppercase tracking-widest text-solana border-b-2 border-solana pb-1 transition-all">Marketplace</button>
+            <button id="tab-assets" onclick="window.switchTab('assets')" class="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all">My Assets</button>
+        </div>
+
+        <button id="connect-btn" onclick="window.initializeMemberPortal()" class="px-6 py-2 bg-white text-black text-[10px] font-black uppercase rounded-full hover:bg-solana transition-all">
+            Initialize Portal
+        </button>
+    </nav>
+
+    <main id="portal-main" class="pt-32 pb-20 px-8 max-w-7xl mx-auto opacity-50 pointer-events-none transition-opacity duration-700">
+
+        <section id="command-center" class="mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+                <div class="glass p-8 rounded-[2rem] border border-white/10">
+                    <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-2">Total Portfolio</p>
+                    <h2 id="total-portfolio-value" class="text-4xl font-black italic text-white">0 Fractions</h2>
+                    <div id="genesis-status-badge" class="mt-4 hidden">
+                        <span class="bg-emerald-500/20 text-emerald-400 text-[9px] px-3 py-1 rounded-full font-black uppercase border border-emerald-500/30">
+                            Genesis Holder
+                        </span>
+                    </div>
+                </div>
+
+                <div class="glass p-8 rounded-[2rem] border border-white/10 relative overflow-hidden">
+                    <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-2">Wallet Status</p>
+                    <div id="lock-status-ui">
+                        <h2 id="lock-status-text" class="text-2xl font-black text-emerald-500 uppercase italic">Verified</h2>
+                        <p class="text-[10px] text-zinc-400 mt-1">Access Unrestricted</p>
+                    </div>
+                    <div id="global-lock-alert" class="absolute inset-0 bg-red-600/90 flex flex-col items-center justify-center p-6 text-center hidden">
+                        <p class="font-black text-white uppercase italic text-sm">Wallet Restricted</p>
+                        <p class="text-[9px] text-white/80 uppercase font-bold mt-2">Active Governance Vote in Progress</p>
+                    </div>
+                </div>
+
+                <div class="glass p-8 rounded-[2rem] border border-white/10">
+                    <p class="text-[10px] text-zinc-500 uppercase font-black tracking-widest mb-2">Live Network</p>
+                    <div class="space-y-2">
+                        <div class="flex justify-between font-mono text-xs">
+                            <span class="text-zinc-500 uppercase italic">SOL/USD</span>
+                            <span id="tick-sol" class="text-white">$---.--</span>
+                        </div>
+                        <div class="flex justify-between font-mono text-xs">
+                            <span class="text-zinc-500 uppercase italic">DAO_FEED</span>
+                            <span id="dynamic-feed" class="text-emerald-400 font-bold truncate">STABLE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-12">
+                <h3 class="text-xl font-black italic text-white uppercase tracking-tighter mb-4">Discovery: Browse Fields</h3>
+                <div id="field-grid" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    </div>
+            </div>
+        </section>
+
+        <div id="view-market">
+            <div class="flex justify-between items-end mb-8">
+                <h2 class="text-4xl font-black italic uppercase tracking-tighter">Market <span class="text-solana">Listings</span></h2>
+                <button onclick="window.refreshListedSales()" class="text-[9px] font-black text-zinc-500 hover:text-white uppercase tracking-widest">Refresh Registry</button>
+            </div>
+            <div id="listed-sales-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                </div>
+        </div>
+
+        <div id="view-assets" class="hidden">
+            <h2 class="text-4xl font-black italic uppercase tracking-tighter mb-8">My <span class="text-solana">Assets</span></h2>
+            <div id="assets-grid" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                </div>
+        </div>
+    </main>
+
+    <div id="deepTreeModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+        <div class="glass w-full max-w-4xl p-10 rounded-[3rem] border border-white/10 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-solana to-transparent opacity-50"></div>
+            <button onclick="document.getElementById('deepTreeModal').classList.add('hidden')" class="absolute top-8 right-10 text-3xl text-zinc-500 hover:text-white">&times;</button>
+            <div id="modal-content-deep"></div>
+        </div>
+    </div>
+
+    <div id="treeModal" class="fixed inset-0 z-[101] hidden items-center justify-center p-6 bg-black/80">
+        <div class="glass w-full max-w-md p-8 rounded-[2.5rem] border border-white/20">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-black italic text-white uppercase">Manage</h2>
+                <button onclick="document.getElementById('treeModal').classList.add('hidden')" class="text-2xl text-zinc-500">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <input id="stakeAmount" type="number" class="w-full bg-black border border-white/10 p-4 rounded-xl text-white outline-none focus:border-solana" placeholder="Quantity">
+                <div class="flex gap-2">
+                    <button onclick="window.manageStake(window.currentTreePda, 'stake')" class="flex-1 py-4 bg-solana text-black font-black text-[10px] uppercase rounded-xl hover:brightness-110">Stake</button>
+                    <button onclick="window.manageStake(window.currentTreePda, 'unstake')" class="flex-1 py-4 border border-white/20 text-white font-black text-[10px] uppercase rounded-xl hover:bg-white/5">Unstake</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="buyModal" class="fixed inset-0 z-[102] hidden items-center justify-center p-6 bg-black/90">
+        <div class="glass w-full max-w-md p-10 rounded-[3rem] border border-white/20">
+            <h2 id="buyModalTitle" class="text-3xl font-black italic text-white uppercase mb-6">Confirm Purchase</h2>
+            <input id="buyAmount" type="number" value="1" class="w-full bg-black border border-white/10 p-4 rounded-2xl text-white mb-6">
+            <button id="confirmBuyBtn" class="w-full py-4 bg-emerald-500 text-black font-black uppercase tracking-widest rounded-2xl hover:brightness-110">
+                Execute Purchase
+            </button>
+            <button onclick="window.closeBuyModal()" class="w-full py-2 mt-4 text-[9px] text-zinc-600 font-black uppercase hover:text-white">Cancel</button>
+        </div>
+    </div>
+
+    <script type="module" src="./markets.ts"></script>
+
+    <script>
+        // Bridge for initializeMemberPortal
+        window.onload = () => {
+            console.log("Portal UI Logic Loaded");
+
+            // If the user clicks "Initialize", unlock the dashboard opacity
+            const originalInit = window.initializeMemberPortal;
+            window.initializeMemberPortal = async () => {
+                try {
+                    await originalInit();
+                    document.getElementById('portal-main').classList.remove('opacity-50', 'pointer-events-none');
+                    document.getElementById('connect-btn').innerText = "Portal Connected";
+                } catch (e) {
+                    console.error("Initialization Failed", e);
+                }
+            };
+        };
+    </script>
+</body>
+</html>

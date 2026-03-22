@@ -1,0 +1,20 @@
+{
+  "name": "Olive Tree #F1-MO-001",
+  "symbol": "OLV",
+  "description": "11-year old Moriolo olive tree in Field 1 - San Vincenzo Italy.",
+  "properties": {
+    "co2_offset_kg": 21.5,
+    "age_years": 11,
+    "location": "Field 1, Tuscany",
+    "trunk_diameter_cm": 48,
+    "tree_height_cm": 256.2
+  },
+  "attributes": [
+    {"trait_type": "Field", "value": "1"},
+    {"trait_type": "Variety", "value": "Moriolo"},
+    {"trait_type": "Harvest Yield kg/year", "value": "12.3"},
+    {"trait_type": "Ownership Token", "value": "F1-MO-001-TKN"},
+    {"trait_type": "OLV Revenue Share", "value": "yes"}
+  ],
+  "image": "ipfs://Qm.../tree-photo.jpg"
+}

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Olive DAO Admin</title>
+<script type="module" src="/src/admin_new.ts"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&display=swap');
+
+/* Base */
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: #050505;
+  color: #e2e2e2;
+  margin: 0;
+}
+
+/* Admin Grid Layout */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 64px 1fr;
+  height: 100vh;
+}
+
+/* Header */
+header {
+  grid-column: 1 / span 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.7);
+  padding: 0 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  z-index: 50;
+}
+
+/* Sidebar */
+aside {
+  background: rgba(15,15,15,0.8);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* Main Content */
+main {
+  background: #020202;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Glass Panels */
+.glass {
+  background: rgba(15,15,15,0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+/* Stats Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: #111;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.stat-label {
+  font-size: 0.75rem;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 4px;
+  color: #14F195;
+}
+
+/* Buttons */
+button {
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border: none;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: #14F195;
+  color: #000;
+}
+.btn-primary:hover {
+  background: #0fd382;
+  box-shadow: 0 0 12px rgba(20,241,149,0.3);
+}
+.btn-secondary {
+  background: #333;
+  color: #fff;
+}
+.btn-secondary:hover {
+  background: #444;
+}
+.btn-red {
+  background: #ff5722;
+  color: white;
+}
+.btn-red:hover { background: #e64a19; }
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+th {
+  background: rgba(255,255,255,0.05);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  padding: 0.5rem;
+  text-align: left;
+}
+td {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Collapsible Rows */
+.collapsible {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.collapsible:hover { background: rgba(255,255,255,0.05); }
+.collapsed-content { display: none; }
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.badge-green { background: #14F195; color: #000; }
+.badge-red { background: #ff4444; color: #fff; }
+
+/* Connection Bar */
+.connection-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #111;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+</style>
+</head>
+<body>
+
+<div class="connection-bar">
+  <div id="walletInfo">Status: <strong>Disconnected</strong></div>
+  <div>
+    <button id="connectBtn" class="btn-primary">Connect Wallet</button>
+    <button id="initDaoBtn" class="btn-secondary hidden">Initialize DAO</button>
+    <button onclick="window.initializeVault()" class="btn-primary">Initialize Vault</button>
+    <button onclick="window.runEnvSetup()" class="btn-primary">Initialize Environment</button>
+    <button id="run-epoch-btn" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500">
+        Run Revenue Epoch
+    </button>  </div>
+</div>
+
+<main>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-label">Total Staked (TREE Units)</span>
+      <div id="total-stake-val" class="stat-value">0</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Total Olv (Olv Token)</span>
+      <div id="total-stake-olv" class="stat-value">0</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Trees Planted</span>
+      <div id="total-trees-val" class="stat-value">0</div>
+    </div>
+  </div>
+
+  <section class="glass">
+    <h3>Recent Buys on Chain</h3>
+    <table id="positions-table">
+      <thead>
+        <tr><th>Wallet</th><th>Tree PDA</th><th>Shares</th><th>Last Stake (UTC)</th></tr>
+      </thead>
+      <tbody id="positions-body"></tbody>
+    </table>
+    <button onclick="renderPositionsTable()" class="btn-primary">Refresh Table</button>
+    <button onclick="renderOlvSummary()" class="btn-primary">Render OLV</button>
+    <button onclick="showAdminStakes()" class="btn-primary">Show Stakes</button>
+  </section>
+
+  <section class="glass">
+    <h3>Active Stakes</h3>
+    <table>
+      <thead><tr><th>Wallet</th><th>Tree</th><th>Amount</th><th>Time Left</th></tr></thead>
+      <tbody id="stakingTableBody"></tbody>
+    </table>
+  </section>
+
+  <section class="glass">
+    <button onclick="initializeFromSupabase()" class="btn-primary">🌱 Sync Genesis (Limit 3)</button>
+    <button onclick="refreshDashboard()" class="btn-secondary">🔄 Refresh Dashboard</button>
+    <button id="resetStakeBtn" class="btn-red">🚨 Reset Malformed Stake</button>
+  </section>
+
+</main>
+
+<script>
+import { runRevenueEpoch } from "./admin_new.ts";
+
+    document.getElementById("run-epoch-btn")!.addEventListener("click", runRevenueEpoch);
+
+  document.querySelectorAll('.collapsible').forEach(row => {
+    row.addEventListener('click', () => {
+      const next = row.nextElementSibling;
+      next.style.display = next.style.display === 'table-row' ? 'none' : 'table-row';
+    });
+  });
+</script>
+<script type="module" src="/src/admin_new.ts"></script>
+</body>
+</html>

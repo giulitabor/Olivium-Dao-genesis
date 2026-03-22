@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLIVE DAO // COMMAND_CENTER</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #14F195; --bg: #030403; --toxic: #14F195; }
+        body {
+            background-color: var(--bg); color: #fff; font-family: 'JetBrains Mono', monospace;
+            background-image: linear-gradient(rgba(20, 241, 149, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(20, 241, 149, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .heading-massive { font-family: 'Inter', sans-serif; font-weight: 900; letter-spacing: -0.05em; line-height: 0.8; }
+        .glass { background: rgba(255, 255, 255, 0.01); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; }
+        .glass::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://grainy-gradients.vercel.app/noise.svg'); opacity: 0.05; pointer-events: none; }
+        .btn-toxic { background: var(--neon); color: #000; font-weight: 900; text-transform: uppercase; box-shadow: 0 0 20px rgba(20, 241, 149, 0.3); transition: all 0.2s; }
+        .btn-toxic:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(20, 241, 149, 0.5); }
+        .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .active-tab { color: var(--neon); border-bottom: 2px solid var(--neon); }
+    </style>
+</head>
+<body class="antialiased opacity-0 transition-opacity duration-1000">
+
+    <nav class="p-6 flex justify-between items-center max-w-[1600px] mx-auto">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                 <div class="w-full h-full bg-[url('https://api.dicebear.com/7.x/shapes/svg?seed=Olive')] bg-cover"></div>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold leading-none">OLIVE DAO</p>
+                <p class="text-[8px] text-zinc-500 uppercase tracking-tighter">Genesis_Protocol_v2</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-8">
+            <div class="hidden md:flex gap-8 text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                <button onclick="switchTab('market')" id="tab-market" class="active-tab pb-1 transition-all">Marketplace</button>
+                <button onclick="switchTab('assets')" id="tab-assets" class="pb-1 hover:text-white transition-all">My Assets</button>
+            </div>
+            <button id="connect-btn" onclick="connectWallet()" class="px-6 py-2 border border-white/10 text-[10px] font-black hover:bg-white hover:text-black transition-all">
+                CONNECT_UPLINK
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-[1600px] mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <div class="lg:col-span-8 space-y-8">
+                <div id="view-market" class="space-y-8">
+                    <div class="glass rounded-[2.5rem] p-12 relative">
+                        <div class="absolute top-8 right-12 flex gap-3">
+                            <span class="text-[8px] border border-white/10 px-2 py-1 rounded text-zinc-500 font-bold uppercase">Devnet</span>
+                            <span class="text-[8px] border border-toxic/30 px-2 py-1 rounded text-toxic font-bold uppercase">Genesis Phase</span>
+                        </div>
+                        <h1 class="heading-massive text-[100px] uppercase mb-8">BIO<br><span class="text-zinc-800">ASSET</span><br>LEDGER</h1>
+                        <p class="max-w-md text-zinc-400 text-xs leading-relaxed">
+                            Acquire fractional ownership in verified Tuscan groves. First <span class="text-white font-bold">3 trees</span> eligible for genesis rewards.
+                        </p>
+                    </div>
+
+                    <div id="market-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        </div>
+                </div>
+
+                <div id="view-assets" class="hidden space-y-8">
+                    <h2 class="heading-massive text-6xl uppercase opacity-50">Portfolio_Sync</h2>
+                    <div id="assets-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass rounded-[2.5rem] p-8 border-t-2 border-t-white/10">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div id="wallet-avatar" class="w-12 h-12 bg-zinc-900 rounded-xl border border-white/5 flex items-center justify-center text-[10px] text-zinc-700 font-black">?</div>
+                        <div>
+                            <p id="wallet-addr" class="text-[9px] text-zinc-500 mono uppercase">Uplink: Disconnected</p>
+                            <p id="admin-badge" class="text-[8px] text-toxic font-black hidden">LEVEL: ADMIN_OVERRIDE</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <div>
+                            <p class="text-[9px] text-zinc-600 uppercase font-black mb-1">Total Fractions</p>
+                            <p id="total-shares" class="text-4xl font-black italic tracking-tighter">0</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-zinc-600 uppercase font-black mb-1">Wallet Lock Status</p>
+                            <p id="lock-state" class="text-xl font-bold text-zinc-700 uppercase italic">Unverified</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-12 pt-8 border-t border-white/5">
+                        <div class="flex justify-between items-center text-[8px] mono text-zinc-500 mb-2">
+                            <span>TREASURY_SOL_RESERVE</span>
+                            <span id="treasury-bal" class="text-white">---</span>
+                        </div>
+                        <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div id="treasury-bar" class="w-0 h-full bg-toxic transition-all duration-1000"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-[2.5rem] p-8 h-64 relative">
+                    <p class="text-[8px] font-black uppercase text-zinc-700 mb-4 italic">Protocol_Stream</p>
+                    <div id="terminal-logs" class="space-y-2 text-[9px] mono text-zinc-500">
+                        <div>[00:00:00] Initializing uplink...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- CONFIG & STATE ---
+        const PROGRAM_ID = "6HjkwwiKSkr8YCtR9HchVZQ97CmjbBbrW2SeE2U8T6rj"; //
+        const ADMIN_WALLET = "8xkNHk2VpWBM6Nk3enitFCs7vwh2inCveTNintcXHc54"; //
+        let wallet = null;
+
+        // --- CORE LOGIC (markets.ts connection) ---
+        async function connectWallet() {
+            try {
+                const resp = await window.solana.connect();
+                wallet = resp.publicKey.toString();
+                updateUI();
+                logToTerminal(`Uplink established: ${wallet.slice(0,8)}`);
+                loadMarketplace();
+            } catch (err) { logToTerminal(`ERR: ${err.message}`, true); }
+        }
+
+        function updateUI() {
+            document.body.classList.remove('opacity-0');
+            const isAdmin = wallet === ADMIN_WALLET;
+
+            document.getElementById('wallet-addr').innerText = `Uplink: ${wallet.slice(0,4)}...${wallet.slice(-4)}`;
+            document.getElementById('connect-btn').innerText = `● ${wallet.slice(0,4)}`;
+
+            if(isAdmin) {
+                document.getElementById('admin-badge').classList.remove('hidden');
+                document.getElementById('lock-state').innerText = "Admin_Exempt"; //
+                document.getElementById('lock-state').classList.replace('text-zinc-700', 'text-toxic');
+            } else {
+                document.getElementById('lock-state').innerText = "Verified_Ready";
+            }
+        }
+
+        async function loadMarketplace() {
+            const grid = document.getElementById('market-grid');
+            grid.innerHTML = `<div class="col-span-2 skeleton h-48 rounded-[2rem]"></div>`;
+
+            // Simulating Anchor call from markets.ts
+            logToTerminal("Scanning on-chain listings...");
+
+            setTimeout(() => {
+                const mockListings = [
+                    { id: 'TREE-01', price: '0.5', shares: 120, genesis: true },
+                    { id: 'TREE-02', price: '0.8', shares: 45, genesis: true }
+                ];
+
+                grid.innerHTML = mockListings.map(l => `
+                    <div class="glass p-8 rounded-[2rem] border-l-4 border-l-transparent hover:border-l-toxic transition-all group">
+                        <div class="flex justify-between items-start mb-10">
+                            <span class="text-[9px] text-zinc-600 uppercase font-black">${l.genesis ? 'Genesis_Node' : 'Standard_Node'}</span>
+                            <div class="w-2 h-2 rounded-full bg-toxic animate-pulse"></div>
+                        </div>
+                        <h3 class="text-3xl font-black italic text-white">${l.id}</h3>
+                        <div class="flex justify-between items-end mt-8">
+                            <div>
+                                <p class="text-[8px] text-zinc-600 uppercase">Fractional Price</p>
+                                <p class="text-xl font-black">${l.price} <span class="text-[10px] text-zinc-600">SOL</span></p>
+                            </div>
+                            <button onclick="buyAsset('${l.id}')" class="btn-toxic px-6 py-2 rounded-full text-[9px] italic">Acquire</button>
+                        </div>
+                    </div>
+                `).join('');
+                logToTerminal("Listings synced.");
+            }, 800);
+        }
+
+        function logToTerminal(msg, isErr = false) {
+            const term = document.getElementById('terminal-logs');
+            const div = document.createElement('div');
+            div.className = isErr ? 'text-red-500' : 'text-zinc-500';
+            div.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            term.prepend(div);
+        }
+
+        function switchTab(view) {
+            document.getElementById('view-market').classList.toggle('hidden', view !== 'market');
+            document.getElementById('view-assets').classList.toggle('hidden', view !== 'assets');
+            document.getElementById('tab-market').classList.toggle('active-tab', view === 'market');
+            document.getElementById('tab-assets').classList.toggle('active-tab', view === 'assets');
+            if(view === 'assets') logToTerminal("Fetching personal assets...");
+        }
+
+        // Initialize view
+        window.onload = () => { document.body.classList.remove('opacity-0'); };
+    </script>
+</body>
+</html>

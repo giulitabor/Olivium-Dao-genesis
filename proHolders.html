@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OLIVE DAO | Member Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+    /* --- BASE BODY & TYPOGRAPHY --- */
+body {
+background: #050704;
+color: #e2e8f0;
+font-family: 'Inter', sans-serif;
+overflow-x: hidden;
+letter-spacing: -0.01em;
+margin: 0;
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* --- GLASS & NEON --- */
+.glass {
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid rgba(255, 255, 255, 0.08);
+backdrop-filter: blur(16px);
+border-radius: 1rem;
+}
+
+.neon-text {
+text-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+transition: text-shadow 0.5s ease-in-out;
+}
+
+@keyframes neonPulse {
+0%, 100% { text-shadow: 0 0 15px rgba(34, 197, 94, 0.4); }
+50% { text-shadow: 0 0 25px rgba(34, 197, 94, 0.7); }
+}
+
+.neon-text.animate { animation: neonPulse 2s infinite; }
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+
+/* --- MARQUEE TICKER --- */
+@keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+.animate-marquee {
+display: inline-flex;
+animation: marquee 20s linear infinite;
+width: max-content;
+}
+
+.ticker-item {
+padding: 0 2rem;
+flex-shrink: 0;
+display: flex;
+align-items: center;
+gap: 10px;
+border-right: 1px solid rgba(255, 255, 255, 0.05);
+font-size: 10px;
+}
+
+/* --- MODALS --- */
+.modal {
+position: fixed;
+top: 0; left: 0; width: 100%; height: 100%;
+display: none;
+justify-content: center;
+align-items: center;
+background: rgba(0, 0, 0, 0.6);
+backdrop-filter: blur(4px);
+z-index: 9999;
+}
+
+.modal.open { display: flex; }
+
+.modal-content {
+background: #ffffff;
+width: 100%;
+max-width: 500px;
+padding: 30px;
+border-radius: 1rem;
+box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+position: relative;
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- BUTTONS --- */
+.modal-btn {
+width: 100%;
+padding: 12px;
+border-radius: 8px;
+border: none;
+font-weight: bold;
+cursor: pointer;
+transition: 0.3s;
+}
+
+.stake-btn { background: #2d6a4f; color: white; margin-bottom: 10px; }
+.close-btn { background: #eee; color: #666; }
+.modal-btn:hover { opacity: 0.9; }
+
+/* --- WALLET BOX --- */
+.wallet-box {
+background: #2d6a4f;
+padding: 5px 12px;
+border-radius: 8px;
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer;
+border: 1px solid #40916c;
+transition: background 0.2s;
+}
+
+.wallet-box:hover { background: #40916c; }
+
+.wallet-address { font-family: 'Courier New', monospace; font-size: 0.85rem; color: #d8f3dc; }
+
+/* --- TOAST NOTIFICATIONS --- */
+#copy-toast {
+position: fixed;
+bottom: 20px;
+right: 20px;
+background: #1b4332;
+color: white;
+padding: 10px 20px;
+border-radius: 5px;
+display: none;
+z-index: 2000;
+animation: fadeIn 0.3s;
+}
+
+@keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* --- STATS BAR --- */
+.stats-bar {
+display: flex;
+justify-content: space-around;
+background: #1b4332;
+color: white;
+padding: 15px;
+border-radius: 12px;
+margin: 20px 0;
+box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.stat-item { text-align: center; }
+.stat-label { font-size: 0.8rem; text-transform: uppercase; opacity: 0.8; display: block; }
+.stat-value { font-size: 1.2rem; font-weight: bold; color: #74c69d; }
+
+/* --- GRID CONTAINERS --- */
+.grid-container {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+gap: 20px;
+padding: 20px 0;
+}
+
+/* --- SPIN ANIMATION --- */
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="fixed top-0 left-0 w-full glass z-[100] border-b border-white/5 py-3 overflow-hidden">
+        <div class="animate-marquee">
+            <div class="ticker-item text-[10px] mono uppercase text-blue-400">SOL: <span id="tick-sol" class="font-bold text-white">...</span></div>
+            <div class="ticker-item text-[10px] mono uppercase text-blue-200">USDC: <span id="tick-usdc" class="font-bold text-white">...</span></div>
+            <div class="ticker-item text-[10px] mono uppercase text-green-400">OLV: <span id="tick-olv" class="font-bold text-white">...</span></div>
+            <div class="ticker-item text-[10px] mono uppercase text-emerald-500">OIL: <span id="tick-oil" class="font-bold text-white">...</span></div>
+            <div class="ticker-item text-[10px] mono uppercase text-zinc-400">CO2: <span id="tick-co2" class="font-bold text-white">...</span></div>
+            <div id="dynamic-feed" class="ticker-item text-yellow-400 font-bold italic text-[10px] min-w-[400px]">ESTABLISHING SECURE PROTOCOL UPLINK...</div>
+            <div class="ticker-item text-[10px] mono uppercase text-blue-400">SOL: <span class="opacity-50 font-bold">$142.12</span></div>
+            <div class="ticker-item text-[10px] mono uppercase text-blue-200">USDC: <span class="opacity-50 font-bold">$1.00</span></div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto mt-16">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
+            <div>
+                <h1 class="text-5xl font-black italic uppercase tracking-tighter text-green-500 neon-text leading-none">OLIVE DAO</h1>
+                <p class="text-[10px] mono text-zinc-500 uppercase tracking-[0.3em] mt-2">Security Policy [2026-01-16] // Genesis v.02-07</p>
+            </div>
+
+            <div class="flex items-center gap-4">
+    <div id="wallet-container"
+         onclick="window.copyAddress()"
+         class="hidden glass px-6 py-4 rounded-full border border-white/10 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition-all">
+        <span id="wallet-display" class="text-[11px] mono text-white font-bold tracking-tight">Address...</span>
+        <svg class="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+    </div>
+
+    <button id="connectBtn">Connect Wallet</button>
+
+</div>
+                <div id="wallet-pill" class="hidden glass px-5 py-2.5 rounded-2xl border border-green-500/20 flex items-center gap-4">
+                    <div class="flex flex-col items-end">
+                        <span id="display-addr" class="text-[11px] mono text-white font-bold tracking-tight">0x0...</span>
+                        <span id="membership-status" class="text-[9px] mono text-green-500 uppercase font-black">Verified Member</span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-green-500 to-emerald-800 border border-white/10"></div>
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content" class="space-y-12 opacity-10 transition-all duration-1000 pointer-events-none filter blur-sm">
+
+          <section class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="glass p-7 rounded-[2rem] border-l-4 border-blue-500">
+        <p class="text-[10px] mono text-zinc-500 uppercase font-black">Liquid Assets</p>
+        <div class="text-3xl font-black text-white"><span id="balance-sol">0.00</span> <span class="text-xs text-zinc-500">SOL</span></div>
+        <div class="flex justify-between pt-3 border-t border-white/5 mt-3">
+          <div class="glass p-4 rounded-2xl border border-green-500/20 bg-green-500/5">
+              <p class="text-[10px] text-green-500 uppercase tracking-widest font-bold">Liquid Olv tokens</p>
+              <div class="flex items-baseline gap-1">
+                  <h2 id="display-olv" class="text-2xl font-black text-green-400">0</h2>
+                  <span class="text-xs text-green-600">OLV</span>
+              </div>
+          </div>
+
+             <span id="balance-liquid" class="text-sm font-bold text-green-500">0 Shares</span>
+        </div>
+    </div>
+    <div class="glass p-7 rounded-[2rem] border-l-4 border-yellow-500">
+        <p class="text-[10px] mono text-yellow-500 uppercase font-black">Staked Assets</p>
+        <div id="balance-staked" class="text-3xl font-black text-white">0</div>
+        <span id="lock-status" class="text-[9px] mono text-zinc-500 uppercase">UNLOCKED</span>
+    </div>
+    <div class="glass p-7 rounded-[2rem] border-l-4 border-emerald-500">
+        <p class="text-[10px] mono text-emerald-500 uppercase font-black">DAO Weight</p>
+        <div id="global-weight" class="text-3xl font-black text-white">0%</div>
+    </div>
+</section>
+<span id="val-olv">0.00</span>
+<span id="bal-usdc">0.00</span>
+
+<div id="assets-grid"></div>
+<div id="listed-sales-grid"></div>
+<section id="view-my-assets" class="space-y-8">
+  <h2>Your Portfolio</h2>
+    <div id="user-positions" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        </div>
+</section>
+
+<section id="view-dao" class="space-y-8">
+    <div id="listed-sales-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 py-4">
+        </div>
+</section>
+        </main>
+    </div>
+
+    <div id="tos-modal" class="fixed inset-0 z-[200] hidden bg-black/98 backdrop-blur-3xl flex items-center justify-center p-6">
+        <div class="glass max-w-xl w-full p-12 rounded-[3.5rem] border-yellow-500/30">
+            <div class="flex justify-between items-start mb-10">
+                <h3 class="text-4xl font-black italic uppercase text-yellow-500 tracking-tighter leading-none">Security<br>Clearance</h3>
+                <span class="text-[10px] mono text-zinc-600 bg-white/5 px-3 py-1.5 rounded-full">AUTH_ID: 2026-A16</span>
+            </div>
+            <div class="bg-black/40 p-8 rounded-[2rem] border border-white/5 mono text-[11px] italic space-y-4 mb-10">
+                <p>1. <span class="text-yellow-500 font-bold underline">ACTIVE VOTING</span> locks staked assets in escrow.</p>
+                <p>2. <span class="text-blue-400 font-bold underline">ADMIN WALLETS</span> are exempt from lock constraints.</p>
+            </div>
+            <button onclick="window.signAndInitialize()" class="w-full py-5 bg-yellow-500 text-black font-black rounded-3xl hover:bg-yellow-400 transition-all uppercase tracking-tighter shadow-2xl shadow-yellow-500/20">
+                Sign Compliance & Initialize
+            </button>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 gap-4 mt-4">
+    <div id="balance-sol">0</div>
+    <div id="balance-liquid">0 Shares</div>
+    <div id="balance-staked">0 Locked</div>
+    <div id="global-weight">0%</div>
+</div>
+
+<div id="user-positions"></div>
+<div id="active-listings"></div>
+
+<div id="sellModal" style="display:none; position:fixed; background:white; padding:25px; top:50%; left:50%; transform:translate(-50%, -50%); z-index: 1000; border-radius: 15px; width: 320px;">
+    <h3 style="margin-top:0; color: #1b4332;">List Fractions</h3>
+    <input type="hidden" id="modalTreePda">
+    <label style="color: #666; font-size: 0.8rem;">Amount to Sell</label>
+    <input type="number" id="sellSharesCount" class="modal-input" style="width:100%; padding:8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+    <label style="color: #666; font-size: 0.8rem;">Total Price (SOL)</label>
+    <input type="number" step="0.01" id="sellPriceSol" style="width:100%; padding:8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+    <button onclick="executeListing()" class="stake-btn modal-btn">Confirm Listing</button>
+    <button onclick="document.getElementById('sellModal').style.display='none'" class="close-btn modal-btn">Cancel</button>
+</div>
+
+<div id="StakeModal" style="display: none; position:fixed; background:white; padding:25px; top:50%; left:50%; transform:translate(-50%, -50%); z-index: 1000; border: 2px solid #3498db; border-radius: 15px; width: 320px;">
+    <h3 style="margin-top:0; color: #2980b9;">Stake Shares</h3>
+    <div id="stake-status-badge" style="margin: 10px 0; font-size: 0.8rem;">Checking status...</div>
+    <input type="hidden" id="modalTreePdaStake">
+    <label style="color: #666; font-size: 0.8rem;">Amount:</label>
+    <input type="number" id="stakeAmountInput" style="width:100%; padding:8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px;">
+    <button onclick="confirmStake()" style="width:100%; background:#3498db; color:white; padding:12px; border:none; cursor:pointer; border-radius:8px; font-weight:bold;">Confirm Stake</button>
+    <button onclick="closeStakeModal()" class="close-btn modal-btn" style="margin-top:10px;">Cancel</button>
+</div>
+
+<div id="copy-toast" class="hidden">Address Copied!</div>
+
+    <div id="buyModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/90 backdrop-blur-md p-6">
+        <div class="glass max-w-md w-full rounded-[3rem] p-10 border border-emerald-500/30 relative">
+            <button onclick="window.closeBuyModal()" class="absolute top-8 right-8 text-zinc-500 hover:text-white transition-colors text-2xl font-light">&times;</button>
+            <h2 id="buyModalTitle" class="text-3xl font-black text-white italic uppercase mb-2 tracking-tighter">Acquire Fractions</h2>
+            <p id="buyModalPrice" class="text-emerald-500 text-[11px] font-black mono mb-6 tracking-widest"></p>
+
+            <div id="buyModalStats"></div>
+
+            <p class="text-[10px] text-zinc-500 uppercase font-black mb-2">Payment Method</p>
+            <div class="grid grid-cols-3 gap-2 mb-8">
+                <button id="pay-sol" onclick="window.selectPaymentMethod('SOL')" class="p-3 border border-white/10 bg-white/5 rounded-xl transition-all"><p class="text-[10px] font-bold">SOL</p></button>
+                <button id="pay-usdc" onclick="window.selectPaymentMethod('USDC')" class="p-3 border border-white/10 bg-white/5 rounded-xl transition-all"><p class="text-[10px] font-bold">USDC</p></button>
+                <button id="pay-olv" onclick="window.selectPaymentMethod('OLV')" class="p-3 border border-white/10 bg-white/5 rounded-xl transition-all"><p class="text-[10px] font-bold">OLV</p></button>
+            </div>
+
+            <div class="mb-6">
+                <p class="text-[10px] text-zinc-500 uppercase font-black mb-2">Quantity</p>
+                <input id="buyQty" type="number" value="1" oninput="window.updateBuyTotal()" class="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white outline-none focus:border-emerald-500">
+            </div>
+
+            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5 mb-8">
+                <p class="text-xs text-zinc-400">Total Cost</p>
+                <p id="buyTotalCost" class="text-xl font-black text-white italic">0.00 SOL</p>
+            </div>
+
+            <button onclick="window.confirmPurchase()" id="confirmBuyBtn" class="w-full py-5 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-500 transition-all uppercase tracking-widest">
+                Confirm Purchase
+            </button>
+        </div>
+    </div>
+    <div id="deepTreeModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/80">
+    <div id="modal-content-deep" class="relative w-full max-w-4xl mx-auto my-10 p-6">
+        </div>
+</div>
+
+    <div id="treeModal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-black/80 backdrop-blur-sm p-4"></div>
+    <div id="deepTreeModal" class="fixed inset-0 z-[200] hidden items-center justify-center bg-[#050704]/98 backdrop-blur-2xl p-4 overflow-y-auto">
+        <div class="glass max-w-6xl w-full p-12 rounded-[4rem] border border-white/10 relative my-auto">
+            <div id="modal-content-deep"></div>
+        </div>
+    </div>
+
+    <input type="hidden" id="target-tree-pda" value="">
+    <script type="module" src="/src/market.ts"></script>
+</body>
+</html>

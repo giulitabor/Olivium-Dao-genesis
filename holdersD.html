@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLIVE DAO | Member Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono&display=swap');
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .animate-fade-in {
+            animation: slideIn 0.4s ease-out forwards;
+        }
+
+        .connected-theme {
+            background-image: radial-gradient(circle at 10% 20%, rgba(0, 255, 163, 0.08) 0%, transparent 50%);
+            transition: background 1s ease;
+        }
+
+        #wallet-pill {
+            background: rgba(0, 255, 163, 0.03);
+            box-shadow: 0 0 20px rgba(0, 255, 163, 0.05);
+        }
+        body {
+            background: #050704;
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+            background-image: radial-gradient(circle at 10% 20%, rgba(0, 255, 163, 0.05) 0%, transparent 50%);
+        }
+        .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(12px); }
+        .neon-text { text-shadow: 0 0 10px rgba(0,255,163,0.5); }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(0, 255, 163, 0.3); }
+        .tree-card:hover { transform: translateY(-5px); border-color: rgba(0, 255, 163, 0.4); }
+    </style>
+</head>
+
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+      <header class="flex justify-between items-center mb-12">
+    <div>
+        <h1 class="text-3xl font-black italic uppercase tracking-tighter text-green-500 neon-text">OLIVE DAO</h1>
+        <p class="text-[10px] mono text-gray-500 uppercase tracking-widest">Protocol v1.0 // Jan 16 Compliance</p>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <button id="btn-connect" onclick="window.connectWallet()" class="px-8 py-3 bg-white text-black font-bold rounded-full hover:bg-green-500 transition-all active:scale-95 text-[11px] uppercase tracking-widest">
+          Connect Wallet
+      </button>
+
+        <div id="wallet-pill" class="hidden glass px-4 py-2 rounded-2xl border border-green-500/30 flex items-center gap-3 animate-fade-in">
+            <div class="flex flex-col items-end">
+                <span id="display-addr" class="text-[11px] mono text-white font-bold">0x00...0000</span>
+                <span class="text-[9px] mono text-green-500 uppercase leading-none">Verified Member</span>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-green-500 to-emerald-900 border border-white/10"></div>
+        </div>
+    </div>
+</header>
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass p-8 rounded-[2rem] border-l-4 border-green-500">
+                    <h2 class="text-xs font-bold mb-6 uppercase tracking-widest text-gray-400">Account Overview</h2>
+                    <div class="space-y-6">
+                        <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                            <span class="text-gray-500 text-xs mono uppercase">Staked</span>
+                            <span class="text-2xl font-light"><span class="val-olv font-bold">0</span> <span class="text-xs text-gray-500">OLV</span></span>
+                        </div>
+                        <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                            <span class="text-gray-500 text-xs mono uppercase">Liquid</span>
+                            <span class="text-green-500 text-xl font-light"><span id="val-olv-liquid">0.00</span> <span class="text-xs opacity-50">OLV</span></span>
+
+                        </div>
+                        <div class="flex justify-between items-end border-b border-white/5 pb-2">
+                            <span class="text-gray-500 text-xs mono uppercase">Salana</span>
+                            <span class="text-gray-500"><span class="val-sol text-white">0.00</span>  <span class="text-xs opacity-50">SOL</span></span>
+
+                        </div>
+
+                        <div class="flex justify-between items-end">
+                            <span class="text-gray-500 text-xs mono uppercase">Vote Status</span>
+                            <span id="lock-status" class="text-green-400 text-xs font-bold px-2 py-1 bg-green-500/10 rounded">READY</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass p-8 rounded-[2rem]">
+                    <h2 class="text-sm font-bold mb-2 uppercase text-white">Join the Grove</h2>
+                    <p class="text-[11px] mb-6 text-gray-500 leading-relaxed">Initialize your Stake Account to lock shares and unlock governance voting rights.</p>
+                    <div id="stake-status" class="text-[10px] mono text-yellow-500 mb-4 italic uppercase">● Checking Ledger...</div>
+                    <button onclick="joinDAO()" class="w-full py-4 bg-green-500 text-black font-black rounded-2xl hover:bg-green-400 transition-all uppercase tracking-tight">
+                        Initialize Stake
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 space-y-8">
+
+                <section>
+                    <div class="flex justify-between items-end mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white italic uppercase">Marketplace</h2>
+                            <p class="text-xs text-gray-500 mono">Available Assets for Immediate On-Chain Acquisition</p>
+                        </div>
+                        <span class="text-[10px] bg-white/5 px-3 py-1 rounded-full text-gray-400 mono">5 Trees Live</span>
+                    </div>
+
+                    <div id="marketplace-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="animate-pulse bg-white/5 h-40 rounded-3xl border border-white/10"></div>
+                        <div class="animate-pulse bg-white/5 h-40 rounded-3xl border border-white/10"></div>
+                    </div>
+                </section>
+
+                <section class="opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+                    <h2 class="text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest">My Collection</h2>
+                    <div class="glass p-12 rounded-[2rem] border-dashed border-2 flex flex-col items-center justify-center text-center">
+                        <div class="text-4xl mb-4">🏜️</div>
+                        <p class="text-xs mono text-gray-500">No assets detected in connected wallet.</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+    <script>
+    function joinDAO() {
+    // Instead of initializing immediately, show the ToS
+    document.getElementById('tos-modal').classList.remove('hidden');
+}
+
+function closeTOS() {
+    document.getElementById('tos-modal').classList.add('hidden');
+}
+
+async function signAndInitialize() {
+    const btn = document.getElementById('btn-accept-tos');
+    btn.innerText = "WAITING FOR SIGNATURE...";
+    btn.disabled = true;
+
+    try {
+        // 1. Trigger the actual Solana Transaction via main.ts
+        // Your main.ts should export a function called initializeStakeAccount
+        const success = await window.solanaBridge.initializeStakeAccount();
+
+        if (success) {
+            alert("Success: Account Initialized & Policy Signed.");
+            closeTOS();
+            // Update UI
+            document.getElementById('btn-stake').innerText = "ACCOUNT ACTIVE";
+            document.getElementById('btn-stake').disabled = true;
+            document.getElementById('btn-stake').classList.add('opacity-50');
+        }
+    } catch (err) {
+        console.error("ToS Signing Failed", err);
+        btn.innerText = "SIGN & INITIALIZE STAKE";
+        btn.disabled = false;
+    }
+}
+        // Use your Supabase Client here
+        async function displayMarket() {
+            const marketGrid = document.getElementById('marketplace-grid');
+            if (!marketGrid) return;
+            // Wait for sbClient to be attached to window by main.ts
+    if (!window.sbClient) {
+        console.log("⏳ Waiting for Supabase connection...");
+        setTimeout(displayMarket, 500); // Retry in 500ms
+        return;
+    }
+
+            try {
+                // Adjusting to your specific Supabase table structure
+                const { data: listings, error } = await sbClient
+                    .from('market_listings')
+                    .select(`
+                        tree_id,
+                        price_sol,
+                        tree_metadata (variety, health_score)
+                    `)
+                    .eq('is_active', true);
+
+                if (error) throw error;
+
+                if (!listings || listings.length === 0) {
+                    marketGrid.innerHTML = `<p class="text-gray-500 col-span-full py-8 text-center mono text-xs uppercase">No active listings found.</p>`;
+                    return;
+                }
+
+                marketGrid.innerHTML = listings.map(item => `
+                    <div class="glass p-6 rounded-3xl tree-card transition-all duration-300 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-[10px] mono text-yellow-500 font-bold px-2 py-1 bg-yellow-500/10 rounded">${item.tree_id}</span>
+                            <div class="text-right">
+                                <p class="text-[10px] text-gray-500 uppercase mono">Health</p>
+                                <p class="text-xs font-bold text-green-400">${item.tree_metadata?.health_score || 100}%</p>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg font-bold text-white group-hover:text-green-400 transition-colors">
+                            ${item.tree_metadata?.variety || 'Olive Tree'}
+                        </h3>
+
+                        <div class="flex justify-between items-center mt-6">
+                            <div>
+                                <p class="text-[10px] text-gray-500 uppercase mono">Price</p>
+                                <p class="text-lg font-bold">${item.price_sol} <span class="text-xs opacity-50">SOL</span></p>
+                            </div>
+                            <button onclick="buyTreeShare('${item.tree_id}', ${item.price_sol})"
+                                    class="bg-white text-black text-xs font-black px-6 py-3 rounded-xl hover:bg-green-500 transition-all active:scale-90 uppercase tracking-tighter">
+                                Buy Asset
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Market Load Error:", err);
+                marketGrid.innerHTML = `<p class="text-red-500 text-xs italic">Sync error. Please check console.</p>`;
+            }
+        }
+
+        // Run on load
+        window.addEventListener('load', displayMarket);
+    </script>
+    <div id="tos-modal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-filter blur-xl flex items-center justify-center p-4">
+    <div class="glass max-w-lg w-full rounded-[2.5rem] border-t-2 border-green-500 overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="p-8 border-b border-white/5">
+            <h2 class="text-2xl font-black italic uppercase text-white">Participation Agreement</h2>
+            <p class="text-[10px] mono text-gray-500 mt-1 uppercase">Protocol v1.0 // Revision: 2026-02-02</p>
+        </div>
+
+        <div id="tos-content" class="p-8 overflow-y-auto text-sm text-gray-400 leading-relaxed space-y-4 mono custom-scrollbar">
+            <p class="text-white font-bold uppercase italic">[Section 1: Voting Lock]</p>
+            <p>In accordance with Rule [2026-01-16], users acknowledge that once a vote is cast, the associated asset (Tree ID) and its ownership shares are locked for the duration of the cycle.</p>
+
+            <p class="text-white font-bold uppercase italic">[Section 2: Fractional Ownership]</p>
+            <p>Users understand that asset ownership is fractional. The "Buy" function entitles the user to a percentage share of a physical tree managed by the DAO. </p>
+
+            <p class="text-white font-bold uppercase italic">[Section 3: On-Chain Finality]</p>
+            <p>All transactions are finalized on the Solana Blockchain. Supabase records act as a high-speed cache and are secondary to the on-chain Truth Ledger.</p>
+
+            <p class="text-gray-500 italic">I hereby verify that I am the sole controller of the connected wallet and agree to the governance rules of the Olive DAO Grove.</p>
+        </div>
+
+        <div class="p-8 bg-white/5 space-y-3">
+            <button id="btn-accept-tos" onclick="signAndInitialize()" class="w-full py-4 bg-green-500 text-black font-black rounded-2xl hover:bg-green-400 transition-all uppercase tracking-tight shadow-lg shadow-green-500/20">
+                Sign & Initialize Stake
+            </button>
+            <button onclick="closeTOS()" class="w-full py-2 text-gray-500 text-[10px] uppercase font-bold hover:text-white transition-colors">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

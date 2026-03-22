@@ -1,0 +1,19 @@
+{
+  "tree_id": "TOSC-000124",
+  "trunk_diameter_cm": 42,
+  "tree_height_m": 3.8,
+  "tree_spread_m": 2.6,
+  "last_harvest": {
+    "date": "2025-11-02",
+    "kg_olives": 38
+  },
+  "last_prune": "2025-02-10",
+  "last_treatment": "2025-04-15",
+  "last_fertilization": "2025-03-20",
+  "photos": [
+    "ipfs://Qm...",
+    "ipfs://Qm..."
+  ],
+  "updated_at": "2025-11-03",
+  "updated_by": "AGRITECH_SENSOR_V1"
+}

@@ -1,0 +1,24 @@
+Instruction Name,Purpose
+add_tree_to_field,Plants a tree and links it to a specific field.
+init_field,"This is your ""Initialize Field"" function."
+initialize_global_config,Initializes the DAO with Admin and Manager roles.
+create_revenue_epoch,Starts a new revenue cycle for a tree.
+claim_revenue,Allows a shareholder to claim their portion of rewards.
+cast_vote,Casts a vote on a proposal (locked if already voted).
+stake_shares / unstake_shares,Manages share staking for voting power.
+purchase_tree_shares,Handles the marketplace transaction of tree shares.
+report_oil_harvest,Logs harvest data for a field.
+report_carbon_verification,Updates CO2 sequestration data.
+update_tree_health,Adjusts the health score of a specific tree.
+withdraw_treasury,Moves funds from the treasury (Admin only).
+set_paused,Emergency stop for program functions.
+cleanup_legacy_account,Purges non-standard or old data buffers.
+cancel_listing,Removes a tree share listing from the market.
+close_revenue_epoch,Finalizes a revenue cycle.
+close_stake,Closes a stake account and returns rent.
+create_proposal,Submits a new DAO proposal.
+finalize_epoch,Moves remaining funds to treasury after a claim period.
+init_revenue_vault,Sets up the SOL vault for tree rewards.
+initialize_stake,Prepares a wallet for staking.
+update_manager,Changes the manager role (Admin only).
+burn_bad_player_shares,Slashes shares from malicious actors.

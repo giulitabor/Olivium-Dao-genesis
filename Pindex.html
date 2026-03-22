@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Genesis v1.8 · Oracle Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+<script>window.Buffer = window.Buffer || { from: (s) => new TextEncoder().encode(s) };</script>
+<style>
+/* Base Styles */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070b0e;--bg2:#0d1318;--bg3:#12191f;
+  --bdr:rgba(255,255,255,0.07);--bdr2:rgba(255,255,255,0.13);
+  --green:#22c55e;--gdim:rgba(34,197,94,0.1);
+  --text:rgba(255,255,255,0.88);--muted:rgba(255,255,255,0.4);
+  --mono:'Space Mono',monospace;--disp:'Syne',sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);padding:20px;display:flex;justify-content:center}
+#app{width:100%;max-width:500px}
+.card{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:16px;margin-bottom:12px}
+.pill{display:inline-flex;padding:3px 9px;border-radius:20px;font-size:9px;background:var(--gdim);color:var(--green);border:1px solid var(--green)}
+.btn-wallet{background:var(--green);color:#000;border:none;padding:8px 16px;border-radius:6px;font-family:var(--mono);font-weight:700;cursor:pointer;font-size:11px}
+.code{font-size:9px;background:#000;padding:10px;border-radius:6px;color:var(--green);overflow-x:auto;white-space:pre-wrap}
+.cfg-in{width:100%;background:#000;border:1px solid var(--bdr2);color:#fff;padding:8px;margin:5px 0;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div id="app">
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center">
+        <div>
+            <div style="font-size:9px; color:var(--muted)">OPERATOR WALLET</div>
+            <div id="addr-display" style="font-size:11px; font-weight:700">NOT CONNECTED</div>
+        </div>
+        <button id="btn-connect" class="btn-wallet">CONNECT PHANTOM</button>
+    </div>
+
+    <div id="oracle-ui">
+        <div style="text-align:center; padding:40px; color:var(--muted)">Connect wallet to initialize fusion.</div>
+    </div>
+</div>
+
+<script>
+// --- ORACLE DATA ENGINE ---
+const S = {
+    tick: 0,
+    cfgOpen: false,
+    lat: '40.7128', lon: '-74.0060',
+    tomorrowKey: localStorage.getItem('tm_key') || 'demo',
+    walletConnected: false,
+    stakedOlv: 0,
+    fusionData: null
+};
+
+// --- MOCK SENSOR LOGIC (from oo2.ts) ---
+function getMockSensors() {
+    return {
+        soilMoisture: (22 + Math.random() * 5).toFixed(1),
+        temp: (18 + Math.random() * 2).toFixed(1),
+        humidity: (55 + Math.random() * 10).toFixed(0)
+    };
+}
+
+// --- REFRESH DATA ---
+async function refreshOracle() {
+    if (!S.walletConnected) return;
+
+    // Simulate Data Fetch
+    const sensors = getMockSensors();
+    S.fusionData = {
+        timestamp: new Date().toISOString(),
+        sensors: sensors,
+        confidence: 0.98,
+        staked: S.stakedOlv
+    };
+
+    S.tick++;
+    render();
+}
+
+// --- WALLET & STAKING CHECK ---
+async function connectWallet() {
+    if ("solana" in window) {
+        try {
+            const resp = await window.solana.connect();
+            const pubKey = resp.publicKey;
+            S.walletConnected = true;
+
+            // Check OVL Staked (Your logic)
+            try {
+                const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+                // Note: Simplified for demo; would usually use program.account.fetch
+                S.stakedOlv = 100; // Mocking staked amount
+            } catch(e) { S.stakedOlv = 0; }
+
+            document.getElementById('addr-display').innerText = pubKey.toString().slice(0,4) + '...' + pubKey.toString().slice(-4);
+            document.getElementById('btn-connect').innerText = "DISCONNECT";
+
+            // Start the refresh loop
+            setInterval(refreshOracle, 5000);
+            refreshOracle();
+        } catch (err) { console.error(err); }
+    }
+}
+
+// --- RENDER UI ---
+function render() {
+    const ui = document.getElementById('oracle-ui');
+
+    if (S.cfgOpen) {
+        ui.innerHTML = `
+            <div class="card">
+                <div style="font-size:10px; margin-bottom:10px">CONFIG ENGINE</div>
+                <input id="cfg_tk" class="cfg-in" placeholder="Tomorrow.io Key" value="${S.tomorrowKey}">
+                <button id="btnSave" class="btn-wallet" style="width:100%; margin-top:10px">SAVE</button>
+            </div>
+        `;
+        bindConfigEvents();
+        return;
+    }
+
+    if (!S.fusionData) {
+        ui.innerHTML = `<div class="card">Initializing data fusion...</div>`;
+        return;
+    }
+
+    ui.innerHTML = `
+        <div class="card">
+            <div style="display:flex; justify-content:space-between">
+                <div class="pill">STAKED OVL: ${S.stakedOlv}</div>
+                <button id="btnCfg" style="background:none; border:none; color:var(--muted); cursor:pointer; font-size:10px">⚙ SETTINGS</button>
+            </div>
+            <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:10px">
+                <div class="card" style="background:var(--bg3)">
+                    <div style="font-size:8px; color:var(--muted)">SOIL MOISTURE</div>
+                    <div style="font-size:24px; font-weight:800">${S.fusionData.sensors.soilMoisture}%</div>
+                </div>
+                <div class="card" style="background:var(--bg3)">
+                    <div style="font-size:8px; color:var(--muted)">TEMPERATURE</div>
+                    <div style="font-size:24px; font-weight:800">${S.fusionData.sensors.temp}°C</div>
+                </div>
+            </div>
+            <div style="font-size:9px; color:var(--muted); margin-bottom:5px">FUSED DATA PAYLOAD</div>
+            <div class="code">${JSON.stringify(S.fusionData, null, 2)}</div>
+            <div style="font-size:8px; color:var(--dim); text-align:center; margin-top:15px">TICK #${S.tick} · LAT: ${S.lat} · LON: ${S.lon}</div>
+        </div>
+    `;
+    bindMainEvents();
+}
+
+function bindMainEvents() {
+    document.getElementById('btnCfg')?.addEventListener('click', () => { S.cfgOpen = true; render(); });
+}
+
+function bindConfigEvents() {
+    document.getElementById('btnSave')?.addEventListener('click', () => {
+        S.tomorrowKey = document.getElementById('cfg_tk').value;
+        localStorage.setItem('tm_key', S.tomorrowKey);
+        S.cfgOpen = false;
+        render();
+    });
+}
+
+document.getElementById('btn-connect').addEventListener('click', connectWallet);
+</script>
+</body>
+</html>
